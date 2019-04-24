@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 #install.packages("glue")
 library(glue)
 #install.packages("pracma")
@@ -16,6 +16,11 @@ library(rio)
 library(here)
 library(janitor)
 library(magrittr)
+
+download_file <- function(year) {
+    link <- glue::glue("https://www.oregon.gov/ode/educator-resources/assessment/TestResults20{year}/pagr_schools_ela_raceethnicity_{year-1}{year}.xlsx")
+    rio::import(link, setclass = "tibble", na = c("-", "--", "*"))
+}
 ```
 
 
