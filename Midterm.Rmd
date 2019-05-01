@@ -63,7 +63,10 @@ clean %<>%
 ## 3. (3 points) Reformat the data so it looks like the below (on the website), removing n and filling by cn. Remove rows that have missing data for either student group.
 
 ```{r Part A 3}
-
+clean2 <- clean %>% 
+  select(-n) %>% 
+  spread(student_group, cn) %>% 
+  na.omit()
 
 ```
 
