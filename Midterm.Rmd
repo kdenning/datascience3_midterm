@@ -40,8 +40,15 @@ data <- map_df(15:18, download_file)
 ## Conduct some basic data cleaning to make your data file look like the following. Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.Remove any row that has missing data in any of the n variables
 
 ```{r Part A 1 cleaning}
-
-
+clean <- data %>% 
+  clean_names() %>% 
+  filter(student_group == "White" | student_group == "Hispanic/Latino") %>% 
+  select(academic_year, district, school, student_group, grade_level, number_level_1, number_level_2, number_level_3, number_level_4) %>% 
+  gather("level", "n", number_level_1:number_level_4) %>% 
+  separate(level, c("delete1", "delete2", "level"), sep = "_") %>% 
+  select(-delete1, -delete2) %>% 
+  na.omit(n)
+clean
 ```
 
 
