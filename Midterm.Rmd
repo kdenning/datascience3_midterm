@@ -90,8 +90,6 @@ gap <- function(clean2, white, hispanic_latino) {
     sqrt(2)*qnorm(auc)
 }
 
-gap(clean2[1:4, ], "white", "hispanic_latino")
-
 #need to do it for each school
 gaps_data <- clean2 %>% 
   nest(-academic_year, -school, -grade_level) %>% 
