@@ -101,6 +101,30 @@ gaps_data
 
 ```{r Part B 2}
 # will use nesting here
+ashland_plot_data <- gaps_data %>% 
+  filter(school == "Ashland Middle School") %>% 
+  filter(academic_year == "2017-2018") %>% 
+  mutate(grade_level = as.factor(grade_level))
+
+ggplot(ashland_plot_data, aes(grade_level, es)) +
+  geom_col() + 
+  coord_flip()
+
+plot_df <- gaps_data %>% 
+  select(-data) %>% 
+   nest(-academic_year, -school) %>% 
+   slice(1:100)
+
+p <- plot_df %>% 
+  mutate(plot = map2(data, ~ggplot(.x, aes(grade_level, es)) +
+                      geom_col(aes(fill = es)) +
+                      coord_flip()) +
+        labs(title = glue("es:{.y}")))
+
+
+p$plot[[100]]
+
+
 
 
 ```
