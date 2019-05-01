@@ -16,11 +16,7 @@ library(rio)
 library(here)
 library(janitor)
 library(magrittr)
-
-download_file <- function(year) {
-    link <- glue::glue("https://www.oregon.gov/ode/educator-resources/assessment/TestResults20{year}/pagr_schools_ela_raceethnicity_{year-1}{year}.xlsx")
-    rio::import(link, setclass = "tibble", na = c("-", "--", "*"))
-}
+library(fs)
 ```
 
 
@@ -30,16 +26,15 @@ The following function downloads data from the Oregon Department of education we
 
 NOTE: This function uses the glue function from the package of the same name. If you do not already have this package installed, please first install it with install.packages("glue"). It also uses {rio} for the import, which you should already have installed, but if not, install that first too.
 
+## 1. (5 points) Use the function above to download all the data for each of the past 4 school years and bind it into a single data frame, using a single function (i.e., one line of code). Note, this may take a minute or two to run, depending on your Internet speed.
+
+```{r Part A 1 set-up}
 download_file <- function(year) {
     link <- glue::glue("https://www.oregon.gov/ode/educator-resources/assessment/TestResults20{year}/pagr_schools_ela_raceethnicity_{year-1}{year}.xlsx")
     rio::import(link, setclass = "tibble", na = c("-", "--", "*"))
 }
 
-## 1. (5 points) Use the function above to download all the data for each of the past 4 school years and bind it into a single data frame, using a single function (i.e., one line of code). Note, this may take a minute or two to run, depending on your Internet speed.
-
-```{r Part A 1 set-up}
-
-
+data <- map_df(15:18, download_file)
 ```
 
 ## Conduct some basic data cleaning to make your data file look like the following. Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.Remove any row that has missing data in any of the n variables
