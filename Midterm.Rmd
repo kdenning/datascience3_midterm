@@ -40,7 +40,7 @@ data <- map_df(15:18, download_file)
 ```{r Part A 1 cleaning}
 clean <- data %>% 
   clean_names() %>% 
-  filter(student_group == "White" | student_group == "Hispanic/Latino") %>% 
+  filter(student_group == "White" | student_group == "Hispanic/Latino") %>%
   select(academic_year, district, school, student_group, grade_level, number_level_1, number_level_2, number_level_3, number_level_4) %>% 
   gather("level", "n", number_level_1:number_level_4) %>% 
   separate(level, c("delete1", "delete2", "level"), sep = "_") %>% 
@@ -110,7 +110,7 @@ ggplot(ashland_plot_data, aes(grade_level, es)) +
 plot_df <- gaps_data %>% 
   select(-data) %>% 
    nest(-academic_year, -school) %>% 
-   slice(1:5)
+   slice(1:50)
   
 #this works and saves the plots to p 
 
@@ -126,44 +126,43 @@ p$plot[[2]]
 
  p2 <- plot_df %>% 
   mutate(plot = map2(data, school, ~ggplot(.x, aes(grade_level, es)) +
-                      geom_col(aes(fill = es)) +
+                      geom_col(aes(fill = es), alpha = 0.7) +
                       coord_flip() +
                       theme_minimal() +
                       scale_fill_distiller(type = "seq", 
-                                palette = "Blues",
-                               direction = 1) +
+                                limits = c(-1.5, 1.5),
+                                palette = "Spectral",
+                               direction = -1) +
+           ylim(-1.5, .2) +
                        labs(title = glue("Achievement Gap Estimates: {.y}"), y = "Effect Size",
-                            x = "Grade")))
+                            x = "Grade",
+                            subtitle = "Students coded as White compared to those coded as Hispanic/Latino") +
+             theme(legend.position = "bottom")))
  
 p2$plot[[5]]
-
-
-p$plot[[100]]
-
-
-
+ 
+# i believe we might need pmap to add the caption. need year, school district and state 
+ 
+#p$plot[[100]]
 
 ```
+
+#install.packages("english")
+library(english)
+pulitzer <- pulitzer %>%
+    mutate(label = 
+    glue("{str_to_title(as.english(tot))} Total Pulitzer Awards"))
+pulitzer
+ Might have to use this code for caption
+
 
 ## 3. (10 points) Save the plots into a “plots” directory. Make sure the file names are meaningful.
 
 ```{r Part B 3}
-#This is code we can use to rename each plot with a different meaningful name. this use map2
-
-library(glue)
-p <- pulitzer %>%
-    group_by(newspaper) %>%
-    nest() %>%
-    mutate(plot = map2(data, newspaper, ~
-      ggplot(.x, aes(year_range, n)) +
-          geom_col(aes(fill = n)) +
-          scale_fill_distiller(type = "seq", 
-                               limits = c(0, max(pulitzer$n)),
-                               palette = "BuPu",
-                               direction = 1) +
-        ylim(0, max(pulitzer$n)) +
-        coord_flip() +
-          labs(title = glue("Pulitzer Prize winners: {.y}"))))
-
+#created "schools"
+fs::dir_create(here::here("plots", "schools"))
+files <- str_replace_all(tolower(p2$school), " ", "-")
+paths <- here::here("plots", "schools", glue("{files}.png"))
+paths
 
 ```
