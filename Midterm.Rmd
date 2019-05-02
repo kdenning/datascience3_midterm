@@ -165,4 +165,9 @@ files <- str_replace_all(tolower(p2$school), " ", "-")
 paths <- here::here("plots", "schools", glue("{files}.png"))
 paths
 
+walk2(paths, p2$plot, ggsave,
+      width = 9.5, 
+      height = 6.5,
+      dpi = 500)
+
 ```
