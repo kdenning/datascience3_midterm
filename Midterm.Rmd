@@ -15,6 +15,8 @@ library(here)
 library(janitor)
 library(magrittr)
 library(fs)
+#install.packages("rcartocolor")
+library(rcartocolor)
 ```
 
 
@@ -44,7 +46,8 @@ clean <- data %>%
   select(academic_year, district, school, student_group, grade_level, number_level_1, number_level_2, number_level_3, number_level_4) %>% 
   gather("level", "n", number_level_1:number_level_4) %>% 
   separate(level, c("delete1", "delete2", "level"), sep = "_") %>% 
-  select(-delete1, -delete2) %>% 
+  separate(grade_level, c("discard", "grade_level"), sep = " ") %>% 
+  select(-delete1, -delete2, -discard) %>% 
   na.omit(n)
 clean
 ```
@@ -124,23 +127,30 @@ p$plot[[2]]
 
 #messing with asethetics 
 
- p2 <- plot_df %>% 
+plot_df2 <- plot_df$data %>% 
+  separate(grade_level, c("discard", "grade_level"), sep = " ")
+
+ p3 <- plot_df %>% 
   mutate(plot = map2(data, school, ~ggplot(.x, aes(grade_level, es)) +
                       geom_col(aes(fill = es), alpha = 0.7) +
                       coord_flip() +
                       theme_minimal() +
-                      scale_fill_distiller(type = "seq", 
-                                limits = c(-1.5, 1.5),
-                                palette = "Spectral",
+                      scale_fill_carto_c(type = "seq",
+                               palette = "Earth",
+                               limits = c(-1.2, 1.2),
                                direction = -1) +
-           ylim(-1.5, .2) +
+                               ylim(-1.5, .2) +
+                       geom_hline(yintercept = 0, color = "paleturquoise1", size = 2) +
                        labs(title = glue("Achievement Gap Estimates: {.y}"), y = "Effect Size",
                             x = "Grade",
                             subtitle = "Students coded as White compared to those coded as Hispanic/Latino") +
              theme(legend.position = "bottom")))
  
-p2$plot[[5]]
+p3$plot[[2]]
+p3$plot[[19]]
+p3$plot[[40]]
  
+
 # i believe we might need pmap to add the caption. need year, school district and state 
  
 #p$plot[[100]]
