@@ -15,10 +15,6 @@ library(here)
 library(janitor)
 library(magrittr)
 library(fs)
-#install.packages("rcartocolor")
-library(rcartocolor)
-#install.packages("english")
-library(english)
 ```
 
 
@@ -94,27 +90,19 @@ gap <- function(clean2, white, hispanic_latino) {
     sqrt(2)*qnorm(auc)
 }
 
-#need to do it for each school
-gaps_data <- clean2 %>% 
-  nest(-academic_year, -district, -school, -grade_level) %>% 
-  mutate(es = map_dbl(data, gap, "white", "hispanic_latino"))
-gaps_data
 
-#these are giving diff output 
 gaps_data2 <- clean2 %>% 
   group_by(academic_year, school, district, grade_level) %>% 
   nest(-academic_year, -district, -school, -grade_level) %>% 
   mutate(es = map_dbl(data, gap, "white", "hispanic_latino"))
 gaps_data2
 
-#im not sure why district isnt being nested. need district for caption 
-
 ```
 
 ## 2. (10 points) The plot below shows the achievement gap estimates for one school by grade in Ashland School District during the 2017-18 school year. Produce a similar plot to the below (noting the school, academic year, and school district) for each of the first 100 unique school/year/district combinations. Hint - you’ll want to use your effect size data from from the previous question, nest it, then apply slice(1:100). Note that the only reason I’m asking you to slice the data frame is just to reduce run time. In reality, you would do this for all school/year/district combinations.
 
 ```{r Part B 2}
-
+#testing
 ashland_plot_data <- gaps_data2 %>% 
   filter(school == "Ashland Middle School") %>% 
   filter(academic_year == "2017-2018") %>% 
@@ -125,7 +113,7 @@ ggplot(ashland_plot_data, aes(grade_level, es)) +
   geom_col() + 
   coord_flip()
 
-#slice 1:100 and nest agai 
+#slice 1:100 and nest again
 plot_df <- gaps_data2 %>% 
   select(-data) %>% 
    nest(-academic_year, -school, -district) %>% 
@@ -140,16 +128,13 @@ p <- plot_df %>%
 
 p$plot[[2]]
 
-#make caption 
+#make plot caption 
 plot_df <- plot_df %>%
     mutate(label = 
     glue("{str_to_title(academic_year)} School year, {district} School District, Oregon"))
-plot_df2
+plot_df
 
-#messing with asethetics 
-
-#caption stuff 
-
+#code for plots 
 p2 <- plot_df %>% 
   mutate(plot = pmap(list(school, label, data), ~ggplot(..3, aes(grade_level, es)) +
                       geom_col(aes(fill = es), alpha = 0.7) +
@@ -158,28 +143,22 @@ p2 <- plot_df %>%
                       scale_fill_distiller(type = "div",
                                limits = c(-1.5, 1.5),
                                direction = -1) +
-                               ylim(-1.5, .2) +
-                       geom_hline(yintercept = 0, color = "#99d8c9", size = 1) +
-                       labs(title = glue("Achievement Gap Estimates: {..1}"), y = "Effect Size",
+                               ylim(-1.2, .2) +
+                      geom_hline(yintercept = 0, color = "#99d8c9", size = 1) +
+                      labs(title = glue("Achievement Gap Estimates: {..1}"),
+                            y = "Effect Size",
                             x = "Grade",
                             subtitle = "Students coded as White compared to those coded as Hispanic/Latino",
-                            caption = ..2) +
-             theme(legend.position = "bottom",
-             legend.title = element_blank())))
-p2$plot[[2]]
-p2$plot[[39]]
-p2$plot[[49]]
-p2$plot[[99]]
+                            caption = ..2,) +
+                      theme(legend.position = "bottom",
+                      legend.title = element_blank())))
 
+#preview a few plots 
+p2$plot[[21]]
+p2$plot[[23]]
+p2$plot[[62]]
+p2$plot[[91]]
 ```
-
-
-pulitzer <- pulitzer %>%
-    mutate(label = 
-    glue("{str_to_title(as.english(tot))} Total Pulitzer Awards"))
-pulitzer
- Might have to use this code for caption
-
 
 ## 3. (10 points) Save the plots into a “plots” directory. Make sure the file names are meaningful.
 
