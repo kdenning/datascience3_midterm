@@ -49,7 +49,8 @@ clean <- data %>%
   gather("level", "n", number_level_1:number_level_4) %>% 
   separate(level, c("delete1", "delete2", "level"), sep = "_") %>% 
   separate(grade_level, c("discard", "grade_level"), sep = " ") %>% 
-  select(-delete1, -delete2, -discard) %>% 
+  separate(district, c("district", "d1", "d2"), sep = " ") %>% #double check this isn't doing anything weird 
+  select(-delete1, -delete2, -discard, -d1, -d2) %>% 
   na.omit(n)
 clean
 ```
@@ -99,6 +100,13 @@ gaps_data <- clean2 %>%
   mutate(es = map_dbl(data, gap, "white", "hispanic_latino"))
 gaps_data
 
+#these are giving diff output 
+gaps_data2 <- clean2 %>% 
+  group_by(academic_year, school, district, grade_level) %>% 
+  nest(-academic_year, -district, -school, -grade_level) %>% 
+  mutate(es = map_dbl(data, gap, "white", "hispanic_latino"))
+gaps_data2
+
 #im not sure why district isnt being nested. need district for caption 
 
 ```
@@ -106,20 +114,23 @@ gaps_data
 ## 2. (10 points) The plot below shows the achievement gap estimates for one school by grade in Ashland School District during the 2017-18 school year. Produce a similar plot to the below (noting the school, academic year, and school district) for each of the first 100 unique school/year/district combinations. Hint - you’ll want to use your effect size data from from the previous question, nest it, then apply slice(1:100). Note that the only reason I’m asking you to slice the data frame is just to reduce run time. In reality, you would do this for all school/year/district combinations.
 
 ```{r Part B 2}
-ashland_plot_data <- gaps_data %>% 
+
+ashland_plot_data <- gaps_data2 %>% 
   filter(school == "Ashland Middle School") %>% 
   filter(academic_year == "2017-2018") %>% 
   mutate(grade_level = as.factor(grade_level))
 
+#testing ashland plot
 ggplot(ashland_plot_data, aes(grade_level, es)) +
   geom_col() + 
   coord_flip()
 
-plot_df <- gaps_data %>% 
+#slice 1:100 and nest agai 
+plot_df <- gaps_data2 %>% 
   select(-data) %>% 
-   nest(-academic_year, -school) %>% 
-   slice(1:50)
-  
+   nest(-academic_year, -school, -district) %>% 
+   slice(1:100)
+
 #this works and saves the plots to p 
 
 p <- plot_df %>% 
@@ -130,52 +141,22 @@ p <- plot_df %>%
 p$plot[[2]]
 
 #make caption 
-
 plot_df <- plot_df %>%
     mutate(label = 
-    glue("{str_to_title(academic_year)} School year, School District, Oregon"))
-plot_df
+    glue("{str_to_title(academic_year)} School year, {district} School District, Oregon"))
+plot_df2
 
 #messing with asethetics 
 
-plot_df2 <- plot_df$data %>% 
-  separate(grade_level, c("discard", "grade_level"), sep = " ")
-
- p3 <- plot_df %>% 
-  mutate(plot = map2(data, school, ~ggplot(.x, aes(grade_level, es)) +
-                      geom_col(aes(fill = es), alpha = 0.7) +
-                      coord_flip() +
-                      theme_minimal() +
-                      scale_fill_carto_c(type = "seq",
-                               palette = "Earth",
-                               limits = c(-1.2, 1.2),
-                               direction = -1) +
-                               ylim(-1.5, .2) +
-                       geom_hline(yintercept = 0, color = "#99d8c9", size = 2) +
-                       labs(title = glue("Achievement Gap Estimates: {.y}"), y = "Effect Size",
-                            x = "Grade",
-                            subtitle = "Students coded as White compared to those coded as Hispanic/Latino") +
-             theme(legend.position = "bottom")))
- 
-p3$plot[[2]]
-p3$plot[[19]]
-p3$plot[[40]]
- 
-
-
-
-# i believe we might need pmap to add the caption. need year, school district and state 
-
 #caption stuff 
 
-p4 <- plot_df %>% 
+p2 <- plot_df %>% 
   mutate(plot = pmap(list(school, label, data), ~ggplot(..3, aes(grade_level, es)) +
                       geom_col(aes(fill = es), alpha = 0.7) +
                       coord_flip() +
                       theme_minimal() +
-                      scale_fill_carto_c(type = "seq",
-                               palette = "Earth",
-                               limits = c(-1.2, 1.2),
+                      scale_fill_distiller(type = "div",
+                               limits = c(-1.5, 1.5),
                                direction = -1) +
                                ylim(-1.5, .2) +
                        geom_hline(yintercept = 0, color = "#99d8c9", size = 1) +
@@ -183,11 +164,12 @@ p4 <- plot_df %>%
                             x = "Grade",
                             subtitle = "Students coded as White compared to those coded as Hispanic/Latino",
                             caption = ..2) +
-             theme(legend.position = "bottom")))
-p4$plot[[2]]
-p4$plot[[19]]
-p4$plot[[40]]
-p4$plot[[50]]
+             theme(legend.position = "bottom",
+             legend.title = element_blank())))
+p2$plot[[2]]
+p2$plot[[39]]
+p2$plot[[49]]
+p2$plot[[99]]
 
 ```
 
