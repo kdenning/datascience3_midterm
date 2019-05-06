@@ -149,7 +149,7 @@ p2 <- plot_df %>%
                             y = "Effect Size",
                             x = "Grade",
                             subtitle = "Students coded as White compared to those coded as Hispanic/Latino",
-                            caption = ..2,) +
+                            caption = ..2) +
                       theme(legend.position = "bottom",
                       legend.title = element_blank())))
 
